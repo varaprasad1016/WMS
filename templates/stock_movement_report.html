@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Movement Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Stock Movement Report</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('stock_movement_report') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="barcode" class="form-label">Barcode</label>
+                    <input type="text" class="form-control" id="barcode" name="barcode" value="{{ barcode_filter }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="transaction_type" class="form-label">Transaction Type</label>
+                    <select class="form-select" id="transaction_type" name="transaction_type">
+                        <option value="all" {% if transaction_type_filter == 'all' %}selected{% endif %}>All Types</option>
+                        {% for type in transaction_types %}
+                            <option value="{{ type }}" {% if transaction_type_filter == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">Date From</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">Date To</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                </div>
+                
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{{ url_for('stock_movement_report') }}" class="btn btn-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if barcode_filter and product_name %}
+        <div class="alert alert-info">
+            <strong>Showing movements for:</strong> {{ product_name }} ({{ barcode_filter }})
+        </div>
+    {% endif %}
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Movements</h5>
+                    <h2 class="card-text">{{ total_movements }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total In</h5>
+                    <h2 class="card-text text-success">{{ total_in }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Out</h5>
+                    <h2 class="card-text text-danger">{{ total_out }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            {% if movements %}
+                <div class="table-responsive">
+                    <table class="table table-striped" id="movementsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Barcode</th>
+                                <th>Quantity</th>
+                                <th>Transaction Type</th>
+                                <th>User</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movement in movements %}
+                            <tr>
+                                <td>{{ movement.tracker_id }}</td>
+                                <td>{{ movement.created_at }}</td>
+                                <td>{{ movement.product_name }}</td>
+                                <td>{{ movement.barcode }}</td>
+                                <td class="{% if movement.quantity > 0 %}text-success{% elif movement.quantity < 0 %}text-danger{% endif %}">
+                                    {% if movement.quantity > 0 %}+{% endif %}{{ movement.quantity }}
+                                </td>
+                                <td>{{ movement.transaction_type }}</td>
+                                <td>{{ movement.username|default('System') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-exchange-alt fa-4x text-muted mb-3"></i>
+                    <h5>No Stock Movements</h5>
+                    <p class="text-muted">There are no stock movements matching your filter criteria.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#movementsTable').DataTable({
+            "order": [[1, "desc"]],
+            "pageLength": 25
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

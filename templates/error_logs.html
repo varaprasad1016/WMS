@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Error Logs{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Error Logs</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            {% if logs %}
+                <div class="table-responsive">
+                    <table class="table table-striped" id="errorLogsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Timestamp</th>
+                                <th>Error Type</th>
+                                <th>User</th>
+                                <th>Endpoint</th>
+                                <th>Message</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ log.id }}</td>
+                                <td>{{ log.timestamp }}</td>
+                                <td>{{ log.error_type }}</td>
+                                <td>{{ log.username|default('Unknown') }}</td>
+                                <td>{{ log.endpoint|default('N/A') }}</td>
+                                <td>{{ log.error_message }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#errorModal{{ log.id }}">
+                                        View Details
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Modals for error details -->
+                {% for log in logs %}
+                <div class="modal fade" id="errorModal{{ log.id }}" tabindex="-1" aria-labelledby="errorModalLabel{{ log.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="errorModalLabel{{ log.id }}">Error #{{ log.id }} - {{ log.error_type }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <h6>Error Message:</h6>
+                                    <p>{{ log.error_message }}</p>
+                                </div>
+                                
+                                {% if log.stack_trace %}
+                                <div class="mb-3">
+                                    <h6>Stack Trace:</h6>
+                                    <pre class="bg-light p-3"><code>{{ log.stack_trace }}</code></pre>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>User:</h6>
+                                        <p>{{ log.username|default('Unknown') }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Endpoint:</h6>
+                                        <p>{{ log.endpoint|default('N/A') }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h6>Timestamp:</h6>
+                                    <p>{{ log.timestamp }}</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h5>No Error Logs</h5>
+                    <p class="text-muted">There are currently no error logs in the system.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#errorLogsTable').DataTable({
+            "order": [[0, "desc"]],
+            "pageLength": 25
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

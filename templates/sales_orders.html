@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Orders</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; }
+        .navbar { background: #333; color: white; padding: 15px; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { padding: 40px; }
+        table { width: 100%; background: white; border-collapse: collapse; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 30px; }
+        th, td { padding: 15px; border-bottom: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div>Admin Dashboard</div>
+        <div>
+            <a href="{{ url_for('dashboard') }}">Home</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Sales Orders</h2>
+
+        {% if orders %}
+        <table>
+    <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    {% for order in orders %}
+{% for order in orders %}
+<tr>
+    <td>{{ order['id'] }}</td>
+    <td>{{ order['username'] }}</td>
+    <td>{{ order['status'] }}</td>
+    <td>
+        {% if order['status'] == 'Pending' %}
+            <form action="{{ url_for('update_order_status', order_id=order['id']) }}" method="post">
+                <input type="hidden" name="status" value="Order Accepted">
+                <button type="submit">Approve</button>
+            </form>
+        {% else %}
+            {{ order['status'] }}
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+    {% endfor %}
+</table>
+        {% else %}
+        <p>No orders yet!</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>
