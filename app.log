@@ -1,0 +1,69 @@
+2025-05-11 10:20:47,447 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:20:47,813 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-11 10:20:47,813 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-11 10:20:47,933 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:20:50,672 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:20:50,817 - werkzeug - WARNING -  * Debugger is active!
+2025-05-11 10:20:50,833 - werkzeug - INFO -  * Debugger PIN: 136-865-752
+2025-05-11 10:21:18,533 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:21:18] "[32mGET /customer-dashboard HTTP/1.1[0m" 302 -
+2025-05-11 10:21:18,625 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:21:18] "GET /login?next=http://127.0.0.1:5000/customer-dashboard HTTP/1.1" 200 -
+2025-05-11 10:21:28,325 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:21:28] "POST /login?next=http://127.0.0.1:5000/customer-dashboard HTTP/1.1" 200 -
+2025-05-11 10:21:36,006 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:21:36] "POST /login?next=http://127.0.0.1:5000/customer-dashboard HTTP/1.1" 200 -
+2025-05-11 10:21:41,992 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:21:41] "GET /login?next=http://127.0.0.1:5000/customer-dashboard HTTP/1.1" 200 -
+2025-05-11 10:21:58,333 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:21:58] "[32mGET / HTTP/1.1[0m" 302 -
+2025-05-11 10:21:58,603 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:21:58] "GET /login HTTP/1.1" 200 -
+2025-05-11 10:22:08,824 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:22:08] "POST /login HTTP/1.1" 200 -
+2025-05-11 10:22:13,858 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:22:13] "GET /register HTTP/1.1" 200 -
+2025-05-11 10:22:22,642 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:22:22] "GET /login HTTP/1.1" 200 -
+2025-05-11 10:22:50,805 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:22:50,809 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:22:51,495 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:24:30,953 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:24:35,628 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:24:35,914 - werkzeug - WARNING -  * Debugger is active!
+2025-05-11 10:24:35,927 - werkzeug - INFO -  * Debugger PIN: 136-865-752
+2025-05-11 10:24:36,346 - __main__ - INFO - User None (ID: None) logged out
+2025-05-11 10:24:36,354 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:24:36] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-05-11 10:24:36,450 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:24:36] "GET /login HTTP/1.1" 200 -
+2025-05-11 10:24:44,780 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:24:44] "GET /register HTTP/1.1" 200 -
+2025-05-11 10:25:07,113 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:25:07] "POST /register HTTP/1.1" 200 -
+2025-05-11 10:25:10,566 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:25:10] "GET /login HTTP/1.1" 200 -
+2025-05-11 10:25:19,311 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:25:19] "POST /login HTTP/1.1" 200 -
+2025-05-11 10:27:50,024 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:27:50,122 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:27:51,275 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:27:55,514 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:27:55,755 - werkzeug - WARNING -  * Debugger is active!
+2025-05-11 10:27:55,778 - werkzeug - INFO -  * Debugger PIN: 136-865-752
+2025-05-11 10:28:49,468 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:28:49,472 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:28:50,088 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:28:55,329 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:28:55,679 - werkzeug - WARNING -  * Debugger is active!
+2025-05-11 10:28:55,706 - werkzeug - INFO -  * Debugger PIN: 136-865-752
+2025-05-11 10:34:15,658 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:34:15,667 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:34:16,705 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:34:24,211 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:34:24,652 - werkzeug - WARNING -  * Debugger is active!
+2025-05-11 10:34:24,687 - werkzeug - INFO -  * Debugger PIN: 136-865-752
+2025-05-11 10:34:54,144 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:34:54] "POST /login HTTP/1.1" 200 -
+2025-05-11 10:35:02,970 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:35:02] "POST /login HTTP/1.1" 200 -
+2025-05-11 10:38:41,453 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:38:41,458 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:38:41,485 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:38:42,244 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:42:15,722 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:42:16,123 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-11 10:42:16,127 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-11 10:42:16,210 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
+2025-05-11 10:42:18,906 - __main__ - INFO - Database initialized successfully
+2025-05-11 10:42:19,127 - werkzeug - WARNING -  * Debugger is active!
+2025-05-11 10:42:19,141 - werkzeug - INFO -  * Debugger PIN: 136-865-752
+2025-05-11 10:42:27,268 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:42:27] "POST /login HTTP/1.1" 200 -
+2025-05-11 10:42:38,012 - werkzeug - INFO - 127.0.0.1 - - [11/May/2025 10:42:38] "POST /login HTTP/1.1" 200 -
+2025-05-11 10:42:54,352 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:42:54,354 - werkzeug - INFO -  * Detected change in 'C:\\Users\\varap\\Desktop\\wms\\app.py', reloading
+2025-05-11 10:42:55,788 - werkzeug - INFO -  * Restarting with watchdog (windowsapi)
