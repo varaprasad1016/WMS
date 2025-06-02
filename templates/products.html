@@ -1,0 +1,21 @@
+<!doctype html>
+<title>Products</title>
+<h2>Product List</h2>
+<a href="{{ url_for('add_product') }}">Add New Product</a> | <a href="{{ url_for('logout') }}">Logout</a>
+<table border=1>
+<tr><th>ID</th><th>Name</th><th>Barcode</th><th>Barcode Image</th><th>Quantity</th><th>Location</th></tr>
+{% for product in products %}
+<tr>
+  <td>{{ product['id'] }}</td>
+  <td>{{ product['name'] }}</td>
+  <td>{{ product['barcode'] }}</td>
+  <td>
+    <img src="{{ url_for('static', filename='barcodes/' + product['barcode'] + '.png') }}" width="150">
+    <br>
+    <button onclick="window.open('{{ url_for('print_barcode', barcode=product['barcode']) }}', '_blank')">Print</button>
+  </td>
+  <td>{{ product['quantity'] }}</td>
+  <td>{{ product['location'] }}</td>
+</tr>
+{% endfor %}
+</table>

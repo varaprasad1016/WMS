@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>NEXUS Order Assistant</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f0f23 75%, #000000 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #00ff88, transparent),
+                radial-gradient(2px 2px at 40px 70px, #ff0080, transparent),
+                radial-gradient(1px 1px at 90px 40px, #00d4ff, transparent),
+                radial-gradient(1px 1px at 130px 80px, #ff6b00, transparent),
+                radial-gradient(2px 2px at 160px 30px, #ff00ff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: sparkle 20s linear infinite;
+            pointer-events: none;
+            opacity: 0.1;
+            z-index: 1;
+        }
+
+        @keyframes sparkle {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-100px); }
+        }
+
+        .container {
+            width: 95%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: rgba(0, 20, 40, 0.85);
+            backdrop-filter: blur(20px);
+            border: 2px solid transparent;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 
+                0 0 50px rgba(0, 255, 136, 0.3),
+                inset 0 0 20px rgba(0, 100, 200, 0.1);
+            position: relative;
+            z-index: 10;
+            animation: containerGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes containerGlow {
+            0% { 
+                box-shadow: 
+                    0 0 50px rgba(0, 255, 136, 0.3),
+                    inset 0 0 20px rgba(0, 100, 200, 0.1);
+            }
+            100% { 
+                box-shadow: 
+                    0 0 80px rgba(0, 255, 136, 0.5),
+                    inset 0 0 30px rgba(0, 100, 200, 0.2);
+            }
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ff88, #00d4ff, #ff0080, #ff6b00, #00ff88);
+            background-size: 400% 400%;
+            border-radius: 25px;
+            z-index: -1;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ff88, #00d4ff, #ff0080);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: textGlow 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+        }
+
+        @keyframes textGlow {
+            from { filter: brightness(1) drop-shadow(0 0 10px rgba(0, 255, 136, 0.5)); }
+            to { filter: brightness(1.2) drop-shadow(0 0 20px rgba(0, 255, 136, 0.8)); }
+        }
+
+        .subtitle {
+            font-family: 'Exo 2', sans-serif;
+            color: #00d4ff;
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .chat-box {
+            height: 500px;
+            overflow-y: auto;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(0, 10, 20, 0.8);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: rgba(0, 20, 40, 0.5);
+            border-radius: 4px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00ff88, #00d4ff);
+            border-radius: 4px;
+        }
+
+        .bot, .user {
+            max-width: 75%;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 20px;
+            clear: both;
+            white-space: pre-wrap;
+            position: relative;
+            animation: messageSlide 0.5s ease-out;
+            word-wrap: break-word;
+        }
+
+        @keyframes messageSlide {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.9);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .bot {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 212, 255, 0.15));
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            float: left;
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2);
+            color: #e0ffe0;
+        }
+
+        .user {
+            background: linear-gradient(135deg, rgba(255, 0, 128, 0.15), rgba(255, 107, 0, 0.15));
+            border: 1px solid rgba(255, 0, 128, 0.3);
+            float: right;
+            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.2);
+            color: #ffe0f0;
+        }
+
+        .user::before {
+            content: "👨‍🚀 ";
+            font-size: 1.2em;
+        }
+
+        .bot::before {
+            content: "🤖 ";
+            font-size: 1.2em;
+            animation: robotPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes robotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .input-section {
+            position: relative;
+        }
+
+        .input-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-box input {
+            flex-grow: 1;
+            padding: 18px 25px;
+            border-radius: 25px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            background: rgba(0, 20, 40, 0.8);
+            color: #ffffff;
+            font-size: 1rem;
+            font-family: 'Exo 2', sans-serif;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-box input:focus {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            background: rgba(0, 30, 60, 0.9);
+        }
+
+        .input-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+
+        .send-btn {
+            padding: 18px 30px;
+            border: none;
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            color: #000;
+            border-radius: 25px;
+            font-weight: 600;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.4);
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .send-btn:hover::before {
+            left: 100%;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .suggestions-label {
+            width: 100%;
+            color: #00d4ff;
+            font-weight: 600;
+            font-family: 'Orbitron', monospace;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .suggestion-chip {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 12px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #ffffff;
+            transition: all 0.3s ease;
+            font-family: 'Exo 2', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .suggestion-chip::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .suggestion-chip:hover::before {
+            left: 100%;
+        }
+
+        .loading {
+            color: #00ff88;
+            font-style: italic;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: loadingDots 1.5s infinite;
+        }
+
+        @keyframes loadingDots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Holographic effect for important elements */
+        .hologram {
+            position: relative;
+        }
+
+        .hologram::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                45deg,
+                transparent 30%, 
+                rgba(0, 255, 136, 0.1) 50%, 
+                transparent 70%
+            );
+            animation: hologramScan 3s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes hologramScan {
+            0% { transform: translateX(-100%) skewX(-45deg); }
+            100% { transform: translateX(300%) skewX(-45deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                width: 98%;
+                margin: 10px auto;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .chat-box {
+                height: 400px;
+            }
+            
+            .suggestions {
+                flex-direction: column;
+            }
+        }
+
+        /* Cyberpunk grid overlay */
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            border-radius: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container hologram">
+        <div class="header">
+            <h1>NEXUS AI</h1>
+            <div class="subtitle">Advanced Order Assistant</div>
+        </div>
+        
+        <div class="chat-box" id="chat-box"></div>
+
+        <div class="input-section">
+            <div class="input-box">
+                <input type="text" id="user-input" placeholder="Transmit your query to NEXUS..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i> SEND
+                </button>
+            </div>
+
+            <div class="suggestions">
+                <div class="suggestions-label">🚀 Quick Commands</div>
+                <div class="suggestion-chip" onclick="quickSend('How can I place an order?')">
+                    <i class="fas fa-shopping-cart" style="margin-right: 8px;"></i>
+                    Place Order
+                </div>
+                <div class="suggestion-chip" onclick="quickSend('What is the delivery time?')">
+                    <i class="fas fa-clock" style="margin-right: 8px;"></i>
+                    Delivery Time
+                </div>
+                <div class="suggestion-chip" onclick="quickSend('Track order')">
+                    <i class="fas fa-satellite-dish" style="margin-right: 8px;"></i>
+                    Track Order
+                </div>
+                <div class="suggestion-chip" onclick="quickSend('Cancel my order')">
+                    <i class="fas fa-times-circle" style="margin-right: 8px;"></i>
+                    Cancel Order
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function appendMessage(message, sender) {
+            const chatBox = document.getElementById("chat-box");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = sender;
+            msgDiv.textContent = message;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById("user-input");
+            const message = userInput.value.trim();
+            if (message === "") return;
+
+            appendMessage(message, "user");
+            userInput.value = "";
+
+            // Show loading message with sci-fi styling
+            const loadingDiv = document.createElement("div");
+            loadingDiv.className = "bot loading";
+            loadingDiv.innerHTML = "🤖 NEXUS processing";
+            loadingDiv.id = "loading-message";
+            document.getElementById("chat-box").appendChild(loadingDiv);
+            document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
+
+            fetch("/index", {
+                method: "POST",
+                body: JSON.stringify({ message: message }),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                // Remove loading message
+                const loadingMsg = document.getElementById("loading-message");
+                if (loadingMsg) {
+                    loadingMsg.remove();
+                }
+                appendMessage(data.response, "bot");
+            })
+            .catch(error => {
+                // Remove loading message
+                const loadingMsg = document.getElementById("loading-message");
+                if (loadingMsg) {
+                    loadingMsg.remove();
+                }
+                appendMessage("⚠️ NEXUS encountered a system error. Attempting to reconnect...", "bot");
+                console.error("Error:", error);
+            });
+        }
+
+        function quickSend(text) {
+            document.getElementById("user-input").value = text;
+            sendMessage();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        // Sci-fi welcome message
+        window.onload = function() {
+            setTimeout(() => {
+                appendMessage("🌟 NEXUS AI ONLINE 🌟\n\nWelcome to the future of order management! I'm your advanced AI assistant, ready to help with orders, tracking, and support.\n\nHow may I assist you today, commander?", "bot");
+            }, 500);
+        };
+
+        // Add some interactive sound effects (optional)
+        function playSound(type) {
+            // You can add audio elements here for sci-fi sound effects
+            // For now, this is just a placeholder
+        }
+
+        // Enhanced typing effect for bot messages
+        function typeMessage(message, element, speed = 30) {
+            let i = 0;
+            element.textContent = "";
+            const timer = setInterval(() => {
+                if (i < message.length) {
+                    element.textContent += message.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, speed);
+        }
+    </script>
+</body>
+</html>

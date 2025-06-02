@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Inventory Report</h2>
+<a class="btn btn-primary my-3" href="{{ url_for('download_csv') }}">Download CSV</a>
+
+{% if message %}
+<div class="alert alert-{% if message_type == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th><th>Name</th><th>Barcode</th><th>Quantity</th><th>Location</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr {% if product['quantity'] < 5 %} style="background-color: #ffd1d1;" {% endif %}>
+            <td>{{ product['id'] }}</td>
+            <td>{{ product['name'] }}</td>
+            <td>{{ product['barcode'] }}</td>
+            <td>{{ product['quantity'] }}</td>
+            <td>{{ product['location'] }}</td>
+            <td>
+                <button class="btn btn-success btn-sm" onclick="promptAddStock({{ product['id'] }}, '{{ product['name'] }}')">Add Stock</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function promptAddStock(productId, productName) {
+    // Prompt for quantity using a simple JavaScript prompt
+    const quantity = prompt(`Enter quantity to add for ${productName}:`, "1");
+    
+    if (quantity === null) {
+        // User canceled
+        return;
+    }
+    
+    // Validate quantity
+    const parsedQuantity = parseInt(quantity);
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
+        alert("Please enter a valid positive number");
+        return;
+    }
+    
+    // Create and submit a form
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = "{{ url_for('add_stock_to_product') }}";
+    
+    // Add product ID input
+    const productIdInput = document.createElement('input');
+    productIdInput.type = 'hidden';
+    productIdInput.name = 'product_id';
+    productIdInput.value = productId;
+    form.appendChild(productIdInput);
+    
+    // Add quantity input
+    const quantityInput = document.createElement('input');
+    quantityInput.type = 'hidden';
+    quantityInput.name = 'quantity';
+    quantityInput.value = parsedQuantity;
+    form.appendChild(quantityInput);
+    
+    // Add the form to the document and submit it
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+
+        /* Modern Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-link {
+            color: #4a5568 !important;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .badge {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Main Container */
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cart-icon {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+        }
+
+        /* Info Alert */
+        .modern-alert {
+            background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+            border: 1px solid #90cdf4;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-icon {
+            color: #3182ce;
+            font-size: 1.5rem;
+        }
+
+        /* Cart Summary Cards */
+        .cart-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .summary-card .number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .summary-card .label {
+            color: #718096;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        /* Modern Table */
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 2rem;
+        }
+
+        .table {
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table thead th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            padding: 1.5rem;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .table tbody td {
+            padding: 1.5rem;
+            vertical-align: middle;
+            border: none;
+            font-weight: 500;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+
+        .quantity-info {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stock-info {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-in-stock {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+        }
+
+        .status-partial {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-modern {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 2.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        .btn-secondary-modern {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 16px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary-modern:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+        /* Empty Cart State */
+        .empty-cart {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-cart .icon {
+            font-size: 5rem;
+            color: #cbd5e0;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-cart h3 {
+            color: #4a5568;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .empty-cart p {
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        /* Loading States */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 1rem;
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .cart-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Modern Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-cube me-2"></i>Inventory System
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer-dashboard">
+                            <i class="fas fa-box me-2"></i>Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/your-orders">
+                            <i class="fas fa-list-alt me-2"></i>Your Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/cart">
+                            <i class="fas fa-shopping-cart me-2"></i>Cart 
+                            {% if cart_count > 0 %}<span class="badge bg-danger">{{ cart_count }}</span>{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <h1 class="page-title">
+            <i class="fas fa-shopping-cart cart-icon"></i>
+            Your Shopping Cart
+        </h1>
+        
+        <!-- Info Alert -->
+        <div class="modern-alert">
+            <i class="fas fa-info-circle alert-icon"></i>
+            <div>
+                <strong>Flexible Ordering:</strong> You can place orders even if the requested quantity exceeds available stock. Any shortage will be fulfilled as soon as items become available.
+            </div>
+        </div>
+
+        {% if products %}
+            <!-- Cart Summary -->
+            <div class="cart-summary">
+                <div class="summary-card">
+                    <div class="icon"><i class="fas fa-boxes"></i></div>
+                    <div class="number">{{ products|length }}</div>
+                    <div class="label">Items in Cart</div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="number">
+                        {% set in_stock_count = 0 %}
+                        {% for product in products %}
+                            {% if product.quantity <= product.available %}
+                                {% set in_stock_count = in_stock_count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ in_stock_count }}
+                    </div>
+                    <div class="label">In Stock</div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="number">
+                        {% set partial_stock_count = 0 %}
+                        {% for product in products %}
+                            {% if product.quantity > product.available %}
+                                {% set partial_stock_count = partial_stock_count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ partial_stock_count }}
+                    </div>
+                    <div class="label">Partial Stock</div>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-tag me-2"></i>Product Name</th>
+                            <th><i class="fas fa-shopping-basket me-2"></i>Quantity</th>
+                            <th><i class="fas fa-warehouse me-2"></i>Available Stock</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td class="product-name">{{ product.name }}</td>
+                            <td class="quantity-info">{{ product.quantity }}</td>
+                            <td class="stock-info">{{ product.available }}</td>
+                            <td>
+                                {% if product.quantity > product.available %}
+                                    <span class="status-badge status-partial">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Partial Available ({{ product.available }})
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-in-stock">
+                                        <i class="fas fa-check-circle"></i>
+                                        In Stock
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="/customer-dashboard" class="btn-secondary-modern">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </a>
+                <button class="btn-modern" id="checkoutBtn">
+                    <i class="fas fa-credit-card me-2"></i>Place Order
+                </button>
+            </div>
+        {% else %}
+            <!-- Empty Cart State -->
+            <div class="empty-cart">
+                <div class="icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3>Your cart is empty</h3>
+                <p>Looks like you haven't added any items to your cart yet. Start shopping to fill it up!</p>
+                <a href="/customer-dashboard" class="btn-modern">
+                    <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p><strong>Processing your order...</strong></p>
+            <p>Please wait while we prepare your order.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('checkoutBtn')?.addEventListener('click', function() {
+            // Check if there are any low stock items
+            const lowStockItems = [];
+            {% for product in products %}
+                {% if product.quantity > product.available %}
+                    lowStockItems.push("{{ product.name }} (requested: {{ product.quantity }}, available: {{ product.available }})");
+                {% endif %}
+            {% endfor %}
+            
+            let message = "Are you sure you want to place this order?";
+            if (lowStockItems.length > 0) {
+                message = "Some items have limited availability and may be delayed:\n\n" + 
+                    lowStockItems.join("\n") + 
+                    "\n\nDo you want to proceed with the order?";
+            }
+            
+            if (confirm(message)) {
+                // Show loading overlay
+                document.getElementById('loadingOverlay').classList.add('show');
+                
+                fetch('/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading overlay
+                    document.getElementById('loadingOverlay').classList.remove('show');
+                    
+                    if (data.success) {
+                        showNotification("Order placed successfully! 🎉", "success");
+                        setTimeout(() => {
+                            window.location.href = '/customer-dashboard';
+                        }, 2000);
+                    } else {
+                        showNotification("Error: " + data.message, "error");
+                    }
+                })
+                .catch(error => {
+                    // Hide loading overlay
+                    document.getElementById('loadingOverlay').classList.remove('show');
+                    console.error('Error:', error);
+                    showNotification("An error occurred while processing your order.", "error");
+                });
+            }
+        });
+
+        // Modern notification system
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+            `;
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'linear-gradient(45deg, #10b981, #059669)' : 'linear-gradient(45deg, #ef4444, #dc2626)'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                z-index: 10001;
+                font-weight: 600;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                max-width: 400px;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        // Add some interactive effects
+        document.querySelectorAll('.summary-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

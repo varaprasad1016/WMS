@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4" id="printable-content">
+    <div class="d-flex justify-content-between align-items-center non-printable">
+        <h2>Sales Order #{{ order['id'] }}</h2>
+        <div>
+            <button onclick="window.print();" class="btn btn-success me-2">Print Order</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Sales Order</h3>
+        </div>
+        <div class="card-body">
+            <!-- Company Header -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4>Your Company Name</h4>
+                    <p>123 Business Street<br>
+                    City, State 12345<br>
+                    Phone: (123) 456-7890<br>
+                    Email: sales@yourcompany.com</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5>Sales Order</h5>
+                    <p><strong>Order #:</strong> {{ order['id'] }}<br>
+                    <strong>Date:</strong> {{ order['created_at'] }}<br>
+                    <strong>Status:</strong> {{ order['status'] }}</p>
+                </div>
+            </div>
+            
+            <!-- Customer Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Bill To / Ship To:</h5>
+                    <p>{{ order['username'] }}<br>
+                    Customer ID: {{ order['customer_id'] }}</p>
+                </div>
+            </div>
+            
+            <!-- Order Items -->
+            <div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Item #</th>
+                <th>Description</th>
+                <th>Barcode</th>
+                <th class="text-end">Quantity</th>
+                <th class="text-end">Unit Price</th>
+                <th class="text-end">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.product_id }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.barcode }}</td>
+                <td class="text-end">{{ item.quantity }}</td>
+                <td class="text-end">${{ "%.2f"|format(item.price) }}</td>
+                <td class="text-end">${{ "%.2f"|format(item.total) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">No items found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+</div>
+
+                    <tfoot>
+                        <tr>
+                            <th colspan="5" class="text-end">Subtotal:</th>
+                            <td class="text-end">${{ "%.2f"|format(total) }}</td>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="text-end">Tax (0%):</th>
+                            <td class="text-end">$0.00</td>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="text-end">Total:</th>
+                            <td class="text-end"><strong>${{ "%.2f"|format(total) }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <!-- Terms and Notes -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h5>Terms & Conditions</h5>
+                    <p>Payment due within 30 days. Please make checks payable to Your Company Name.</p>
+                    
+                    <h5>Notes</h5>
+                    <p>Thank you for your business!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Print Styles */
+@media print {
+    body {
+        font-size: 12pt;
+    }
+    
+    .non-printable {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .card {
+        border: none !important;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;
+        color: #000 !important;
+        padding: 10px !important;
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .table th, 
+    .table td {
+        border: 1px solid #dee2e6 !important;
+        padding: 0.5rem !important;
+    }
+    
+    .table-light {
+        background-color: #f8f9fa !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Forecast - Warehouse Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #2ec4b6;
+            --danger: #e63946;
+            --warning: #ff9f1c;
+            --dark: #1e293b;
+            --light: #f8f9fa;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-light));
+            --gradient-success: linear-gradient(135deg, var(--success), #20b2aa);
+            --gradient-warning: linear-gradient(135deg, var(--warning), #ffa726);
+            --gradient-dark: linear-gradient(135deg, var(--dark), #131b2c);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, #f4f8fb 0%, #e8f4f8 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        /* Animated background elements */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(45deg, rgba(67, 97, 238, 0.1), rgba(72, 149, 239, 0.05));
+            animation: float 20s infinite linear;
+        }
+
+        .shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: -150px;
+            left: -150px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            right: -100px;
+            animation-delay: -10s;
+        }
+
+        .shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            bottom: -75px;
+            left: 30%;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(20px) rotate(240deg); }
+        }
+
+        /* Header Section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .header-content h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header-subtitle {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(67, 97, 238, 0.4);
+        }
+
+        .btn-light {
+            background: rgba(255,255,255,0.9);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-light:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Main Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Top Products Cards */
+        .top-products {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .period-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .period-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .period-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+        }
+
+        .period-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .period-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .period-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .period-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .weekly .period-icon {
+            background: var(--gradient-success);
+        }
+
+        .monthly .period-icon {
+            background: var(--gradient-warning);
+        }
+
+        .quarterly .period-icon {
+            background: var(--gradient-primary);
+        }
+
+        .period-badge {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--gray-100);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .product-item:hover {
+            background: rgba(67, 97, 238, 0.05);
+            border-left-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 1rem;
+        }
+
+        .product-quantity {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .quantity-badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .charts-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .charts-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chart-container {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .chart-container:hover {
+            background: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .chart-container img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-container:hover img {
+            transform: scale(1.02);
+        }
+
+        .chart-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Back Button */
+        .back-section {
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--gradient-dark);
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(30, 41, 59, 0.3);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(30, 41, 59, 0.4);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--gray-500);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+
+            .header-content h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .top-products {
+                gap: 1rem;
+            }
+
+            .period-card {
+                padding: 1.5rem;
+            }
+
+            .charts-section {
+                padding: 1.5rem;
+            }
+
+            .product-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hover Effects for Interactive Elements */
+        .interactive:hover {
+            cursor: pointer;
+        }
+
+        /* Glassmorphism effect for modern look */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        /* Smooth page transitions */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="container fade-in">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="header-content">
+                <h1>
+                    <div class="header-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    Sales Forecast Overview
+                </h1>
+                <p class="header-subtitle">Advanced analytics and predictions for your warehouse operations</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-light">
+                    <i class="fas fa-download"></i>
+                    Export Data
+                </button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Top Products Section -->
+            <div class="top-products">
+                <!-- Weekly Card -->
+                <div class="period-card weekly">
+                    <div class="period-header">
+                        <h3 class="period-title">
+                            <div class="period-icon">
+                                <i class="fas fa-calendar-week"></i>
+                            </div>
+                            Weekly Leaders
+                        </h3>
+                        <span class="period-badge">Last 7 days</span>
+                    </div>
+                    <div class="product-list">
+                        {% if weekly_top %}
+                            {% for row in weekly_top %}
+                            <div class="product-item">
+                                <span class="product-name">{{ row.product_name }}</span>
+                                <div class="product-quantity">
+                                    <span class="quantity-badge">{{ row.quantity }}</span>
+                                    <span>sold</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-chart-bar"></i>
+                                <p>No weekly data available</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Monthly Card -->
+                <div class="period-card monthly">
+                    <div class="period-header">
+                        <h3 class="period-title">
+                            <div class="period-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            Monthly Leaders
+                        </h3>
+                        <span class="period-badge">Last 30 days</span>
+                    </div>
+                    <div class="product-list">
+                        {% if monthly_top %}
+                            {% for row in monthly_top %}
+                            <div class="product-item">
+                                <span class="product-name">{{ row.product_name }}</span>
+                                <div class="product-quantity">
+                                    <span class="quantity-badge">{{ row.quantity }}</span>
+                                    <span>sold</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-chart-bar"></i>
+                                <p>No monthly data available</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quarterly Card -->
+                <div class="period-card quarterly">
+                    <div class="period-header">
+                        <h3 class="period-title">
+                            <div class="period-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            Quarterly Leaders
+                        </h3>
+                        <span class="period-badge">Last 90 days</span>
+                    </div>
+                    <div class="product-list">
+                        {% if quarterly_top %}
+                            {% for row in quarterly_top %}
+                            <div class="product-item">
+                                <span class="product-name">{{ row.product_name }}</span>
+                                <div class="product-quantity">
+                                    <span class="quantity-badge">{{ row.quantity }}</span>
+                                    <span>sold</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-chart-bar"></i>
+                                <p>No quarterly data available</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="charts-header">
+                    <h3 class="charts-title">
+                        <i class="fas fa-chart-area"></i>
+                        Sales Trends & Analytics
+                    </h3>
+                </div>
+
+                {% if weekly_img %}
+                <div class="chart-container">
+                    <div class="chart-label">
+                        <i class="fas fa-chart-line"></i> Weekly Sales Trend
+                    </div>
+                    <img src="/{{ weekly_img }}" alt="Weekly Sales Trend" loading="lazy">
+                </div>
+                {% endif %}
+
+                {% if monthly_img %}
+                <div class="chart-container">
+                    <div class="chart-label">
+                        <i class="fas fa-chart-bar"></i> Monthly Sales Overview
+                    </div>
+                    <img src="/{{ monthly_img }}" alt="Monthly Sales Overview" loading="lazy">
+                </div>
+                {% endif %}
+
+                {% if quarterly_img %}
+                <div class="chart-container">
+                    <div class="chart-label">
+                        <i class="fas fa-chart-pie"></i> Quarterly Performance
+                    </div>
+                    <img src="/{{ quarterly_img }}" alt="Quarterly Performance" loading="lazy">
+                </div>
+                {% endif %}
+
+                {% if not weekly_img and not monthly_img and not quarterly_img %}
+                <div class="empty-state">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>No Chart Data Available</h3>
+                    <p>Charts will appear here when data is available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Back Button Section -->
+        <div class="back-section">
+            <a href="{{ url_for('dashboard') }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- JavaScript for Enhanced Interactions -->
+    <script>
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add hover effects to interactive elements
+        document.querySelectorAll('.product-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(8px) scale(1.02)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0) scale(1)';
+            });
+        });
+
+        // Add loading states to buttons
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (!this.classList.contains('back-btn')) {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<div class="loading"></div> Loading...';
+                    
+                    // Simulate loading (remove in production)
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                    }, 2000);
+                }
+            });
+        });
+
+        // Lazy loading for images
+        const images = document.querySelectorAll('img[loading="lazy"]');
+        
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src || img.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            images.forEach(img => imageObserver.observe(img));
+        }
+
+        // Add stagger animation to cards
+        const cards = document.querySelectorAll('.period-card, .chart-container');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('fade-in');
+        });
+
+        // Add click tracking for analytics (optional)
+        document.querySelectorAll('.product-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const productName = this.querySelector('.product-name').textContent;
+                console.log(`Product clicked: ${productName}`);
+                // Add your analytics tracking here
+            });
+        });
+    </script>
+</body>
+</html>

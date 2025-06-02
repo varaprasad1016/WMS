@@ -1,0 +1,1399 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    :root {
+        --primary: #4361ee;
+        --primary-light: #4895ef;
+        --secondary: #3f37c9;
+        --success: #2ec4b6;
+        --danger: #e63946;
+        --warning: #ff9f1c;
+        --dark: #1e293b;
+        --light: #f8f9fa;
+        --gray-100: #f8f9fa;
+        --gray-200: #e9ecef;
+        --gray-300: #dee2e6;
+        --gray-400: #ced4da;
+        --gray-500: #adb5bd;
+        --gray-600: #6c757d;
+        --gray-700: #495057;
+        --gray-800: #343a40;
+        --gray-900: #212529;
+        --sidebar-width: 280px;
+        --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        background-color: #f4f8fb;
+        font-family: var(--font-main);
+        color: var(--gray-800);
+        overflow: hidden;
+    }
+    
+    .dashboard-container {
+        display: flex;
+        height: 100vh;
+        position: relative;
+    }
+    
+    /* Sidebar Styles */
+    .sidebar {
+        width: var(--sidebar-width);
+        background: linear-gradient(135deg, var(--dark), #131b2c);
+        color: white;
+        padding: 1.5rem;
+        flex-shrink: 0;
+        height: 100vh;
+        overflow-y: auto;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .brand h2 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: 0.5px;
+    }
+    
+    .brand-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: var(--primary);
+        color: white;
+        font-size: 1.25rem;
+    }
+    
+    .nav-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .nav-section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--gray-500);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--gray-400);
+        text-decoration: none;
+        padding: 0.85rem 1rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .sidebar-link:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+    }
+    
+    .sidebar-link.active {
+        background-color: var(--primary);
+        color: white;
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+    }
+    
+    .sidebar-link i {
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+    }
+    
+    .user-section {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 1.5rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        background: rgba(0,0,0,0.2);
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--gray-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        font-size: 1rem;
+    }
+    
+    .user-details h4 {
+        font-size: 0.9rem;
+        margin: 0;
+        color: white;
+    }
+    
+    .user-details p {
+        font-size: 0.75rem;
+        margin: 0;
+        color: var(--gray-500);
+    }
+    
+    /* Main Content Area */
+    .main-content {
+        flex-grow: 1;
+        padding: 2rem;
+        overflow-y: auto;
+        height: 100vh;
+    }
+    
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .page-title h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+    }
+    
+    .page-title p {
+        font-size: 0.95rem;
+        color: var(--gray-600);
+        margin: 0.25rem 0 0 0;
+    }
+    
+    .search-box {
+        position: relative;
+        width: 300px;
+    }
+    
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--gray-300);
+        background: white;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    
+    .search-box input:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        border-color: var(--primary);
+    }
+    
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-500);
+    }
+    
+    /* Dashboard Cards */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+    }
+    
+    .stat-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card-title {
+        font-size: 0.95rem;
+        color: var(--gray-600);
+        margin: 0;
+    }
+    
+    .stat-card-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .bg-primary {
+        background: rgba(67, 97, 238, 0.15);
+        color: var(--primary);
+    }
+    
+    .bg-success {
+        background: rgba(46, 196, 182, 0.15);
+        color: var(--success);
+    }
+    
+    .bg-warning {
+        background: rgba(255, 159, 28, 0.15);
+        color: var(--warning);
+    }
+    
+    .bg-danger {
+        background: rgba(230, 57, 70, 0.15);
+        color: var(--danger);
+    }
+    
+    .stat-card-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .stat-card-change {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .text-success {
+        color: var(--success);
+    }
+    
+    .text-danger {
+        color: var(--danger);
+    }
+    
+    /* Orders Section */
+    .content-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+    
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .card-options {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        gap: 0.5rem;
+        border: none;
+        text-decoration: none;
+    }
+    
+    .btn-sm {
+        padding: 0.4rem 0.85rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: var(--secondary);
+    }
+    
+    .btn-light {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+    
+    .btn-light:hover {
+        background: var(--gray-300);
+    }
+    
+    .btn-success {
+        background: var(--success);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #25a599;
+    }
+    
+    .btn-danger {
+        background: var(--danger);
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #d12f3b;
+    }
+    
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .orders-table th {
+        background: var(--gray-100);
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--gray-700);
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .orders-table td {
+        padding: 1.2rem 1.5rem;
+        font-size: 0.95rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .orders-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .orders-table tr:hover {
+        background: var(--gray-50);
+    }
+    
+    .customer-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .customer-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: var(--gray-700);
+        font-size: 0.95rem;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.4rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .status-pending {
+        background: rgba(255, 159, 28, 0.15);
+        color: var(--warning);
+    }
+    
+    .status-accepted {
+        background: rgba(46, 196, 182, 0.15);
+        color: var(--success);
+    }
+    
+    .status-shipped {
+        background: rgba(67, 97, 238, 0.15);
+        color: var(--primary);
+    }
+    
+    .status-delivered {
+        background: rgba(25, 135, 84, 0.15);
+        color: #198754;
+    }
+    
+    .status-declined {
+        background: rgba(230, 57, 70, 0.15);
+        color: var(--danger);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    /* Action cell to give more space for buttons */
+    .action-cell {
+        min-width: 250px;
+    }
+    
+    /* Loading state for buttons */
+    .btn.loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    .btn.loading::after {
+        content: '';
+        width: 12px;
+        height: 12px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 0.5rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Alert styles for feedback */
+    .alert {
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .alert-success {
+        background: rgba(46, 196, 182, 0.1);
+        border: 1px solid rgba(46, 196, 182, 0.3);
+        color: var(--success);
+    }
+    
+    .alert-danger {
+        background: rgba(230, 57, 70, 0.1);
+        border: 1px solid rgba(230, 57, 70, 0.3);
+        color: var(--danger);
+    }
+    
+    .alert-dismissible {
+        position: relative;
+    }
+    
+    .alert-dismissible .close-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: inherit;
+        opacity: 0.7;
+    }
+    
+    .alert-dismissible .close-btn:hover {
+        opacity: 1;
+    }
+    
+    /* Footer Area */
+    .card-footer {
+        padding: 1rem 1.5rem;
+        background: var(--gray-100);
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+    .pagination {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+    }
+    
+    .page-item {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 6px;
+        background: white;
+        border: 1px solid var(--gray-300);
+        color: var(--gray-700);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    .page-item:hover {
+        background: var(--gray-200);
+    }
+    
+    .page-item.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    /* Responsive Fixes */
+    @media (max-width: 992px) {
+        .sidebar {
+            width: 80px;
+            padding: 1.5rem 0.75rem;
+        }
+        
+        .brand h2, .nav-section-title, .sidebar-link span, .user-details {
+            display: none;
+        }
+        
+        .brand-icon {
+            margin: 0 auto;
+        }
+        
+        .sidebar-link {
+            justify-content: center;
+            padding: 0.85rem;
+        }
+        
+        .sidebar-link i {
+            margin: 0;
+        }
+        
+        .user-avatar {
+            margin: 0 auto;
+        }
+        
+        .user-section {
+            padding: 1rem;
+        }
+        
+        .user-info {
+            justify-content: center;
+        }
+        
+        .dashboard-grid {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .action-cell {
+            min-width: 200px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .top-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .search-box {
+            width: 100%;
+        }
+        
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .orders-table {
+            font-size: 0.85rem;
+        }
+        
+        .orders-table th,
+        .orders-table td {
+            padding: 0.75rem 1rem;
+        }
+    }
+</style>
+
+<!-- Link to FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-warehouse"></i>
+            </div>
+            <h2>Warehouse Admin</h2>
+        </div>
+        
+        <div class="nav-section">
+            <p class="nav-section-title">Main</p>
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link active">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('scan') }}" class="sidebar-link">
+                <i class="fas fa-barcode"></i>
+                <span>Scan Product</span>
+            </a>
+            <a href="{{ url_for('add_product') }}" class="sidebar-link">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add Product</span>
+            </a>
+        </div>
+        
+        <div class="nav-section">
+            <p class="nav-section-title">Reports</p>
+            <a href="{{ url_for('report') }}" class="sidebar-link">
+                <i class="fas fa-chart-bar"></i>
+                <span>Inventory Report</span>
+            </a>
+            <a href="{{ url_for('sales_forecast') }}" class="sidebar-link">
+    <i class="fas fa-chart-line"></i>
+    <span>Sales Analytics</span>
+</a>
+
+            <a href="{{ url_for('shipment') }}" class="sidebar-link">
+                <i class="fas fa-truck"></i>
+                <span>Shipments</span>
+            </a>
+        </div>
+        
+        <div class="nav-section">
+            <p class="nav-section-title">Settings</p>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-cog"></i>
+                <span>Preferences</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+        
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {{ session.username|first }}
+                </div>
+                <div class="user-details">
+                    <h4>{{ session.username }}</h4>
+                    <p>Administrator</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div id="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                            {{ message }}
+                            <button type="button" class="close-btn" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="top-bar">
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Welcome back, {{ session.username }}!</p>
+            </div>
+            
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search products, orders..." />
+            </div>
+        </div>
+        
+        <!-- Stats Overview -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <h3 class="stat-card-title">Total Products</h3>
+                    <div class="stat-card-icon bg-primary">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+                <h2 class="stat-card-value">1,247</h2>
+                <div class="stat-card-change text-success">
+                    <i class="fas fa-arrow-up"></i> 12% since last month
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <h3 class="stat-card-title">Pending Orders</h3>
+                    <div class="stat-card-icon bg-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <h2 class="stat-card-value">{{ pending_count|default(24) }}</h2>
+                <div class="stat-card-change text-danger">
+                    <i class="fas fa-arrow-up"></i> 8% since yesterday
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <h3 class="stat-card-title">Low Stock Items</h3>
+                    <div class="stat-card-icon bg-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <h2 class="stat-card-value">18</h2>
+                <div class="stat-card-change text-danger">
+                    <i class="fas fa-arrow-up"></i> 3 new since last week
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <h3 class="stat-card-title">Shipped Today</h3>
+                    <div class="stat-card-icon bg-success">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                </div>
+                <h2 class="stat-card-value">36</h2>
+                <div class="stat-card-change text-success">
+                    <i class="fas fa-arrow-up"></i> 15% above target
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sales Orders Section -->
+        <div class="content-card">
+            <div class="card-header">
+                <h3 class="card-title">Sales Orders</h3>
+                <div class="card-options">
+                    <button class="btn btn-sm btn-light">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
+                </div>
+            </div>
+            
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Products</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar">
+                                    {{ order.username|first if order.username else '?' }}
+                                </div>
+                                <div>
+                                    {{ order.username }}
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ order.products|default('3 items') }}</td>
+                        <td>
+                            {% if order.created_at %}
+                                {% if order.created_at is string %}
+                                    {{ order.created_at }}
+                                {% else %}
+                                    {{ order.created_at.strftime('%B %d, %Y') }}
+                                {% endif %}
+                            {% else %}
+                                May 10, 2025
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.status == 'Pending' %}
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-clock"></i> Pending
+                                </span>
+                            {% elif order.status == 'Order Accepted' or order.status == 'Accepted' %}
+                                <span class="status-badge status-accepted">
+                                    <i class="fas fa-check"></i> Accepted
+                                </span>
+                            {% elif order.status == 'Shipped' %}
+                                <span class="status-badge status-shipped">
+                                    <i class="fas fa-truck"></i> Shipped
+                                </span>
+                            {% elif order.status == 'Delivered' %}
+                                <span class="status-badge status-delivered">
+                                    <i class="fas fa-box-check"></i> Delivered
+                                </span>
+                            {% elif order.status == 'Declined' %}
+                                <span class="status-badge status-declined">
+                                    <i class="fas fa-times-circle"></i> Declined
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="action-cell">
+                            <div class="action-buttons">
+                                {% if order.status == 'Pending' %}
+                                    <!-- Accept Button -->
+                                    <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="status" value="Accepted">
+                                        <button type="submit" class="btn btn-sm btn-success status-btn" data-action="accept">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                    </form>
+                                    
+                                    <!-- Decline Button -->
+                                    <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="status" value="Declined">
+                                        <button type="submit" class="btn btn-sm btn-danger status-btn" data-action="decline">
+                                            <i class="fas fa-times"></i> Decline
+                                        </button>
+                                    </form>
+                                    
+                                {% elif order.status == 'Order Accepted' or order.status == 'Accepted' %}
+                                    <!-- Ship Button -->
+                                    <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="status" value="Shipped">
+                                        <button type="submit" class="btn btn-sm btn-primary status-btn" data-action="ship">
+                                            <i class="fas fa-truck"></i> Ship
+                                        </button>
+                                    </form>
+                                    
+                                {% elif order.status == 'Shipped' %}
+                                    <!-- Mark as Delivered Button -->
+                                    <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="status" value="Delivered">
+                                        <button type="submit" class="btn btn-sm btn-light status-btn" data-action="deliver">
+                                            <i class="fas fa-check-circle"></i> Mark Delivered
+                                        </button>
+                                    </form>
+                                    
+                                {% else %}
+                                    <!-- View Button for Delivered/Declined orders -->
+                                    <a href="{{ url_for('view_order_detail', order_id=order.id) }}" class="btn btn-sm btn-light">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                {% endif %}
+                                
+                                <!-- More Options Button (always visible) -->
+                                <div class="dropdown" style="position: relative; display: inline-block;">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" onclick="toggleDropdown(this)">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--gray-300); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); min-width: 150px; z-index: 1000;">
+                                        <a href="{{ url_for('view_order_detail', order_id=order.id) }}" class="dropdown-item" style="display: block; padding: 0.5rem 1rem; text-decoration: none; color: var(--gray-700); border-bottom: 1px solid var(--gray-200);">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </a>
+                                        <a href="#" class="dropdown-item" style="display: block; padding: 0.5rem 1rem; text-decoration: none; color: var(--gray-700); border-bottom: 1px solid var(--gray-200);">
+                                            <i class="fas fa-edit"></i> Edit Order
+                                        </a>
+                                        <a href="#" class="dropdown-item" style="display: block; padding: 0.5rem 1rem; text-decoration: none; color: var(--gray-700);">
+                                            <i class="fas fa-print"></i> Print Invoice
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    <!-- If no orders, provide sample data -->
+                    {% if not orders %}
+                    <tr>
+                        <td>#WH-2025-001</td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar">J</div>
+                                <div>John Smith</div>
+                            </div>
+                        </td>
+                        <td>3 items</td>
+                        <td>May 10, 2025</td>
+                        <td>
+                            <span class="status-badge status-pending">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </td>
+                        <td class="action-cell">
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                                <button class="btn btn-sm btn-danger">
+                                    <i class="fas fa-times"></i> Decline
+                                </button>
+                                <div class="dropdown" style="position: relative; display: inline-block;">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" onclick="toggleDropdown(this)">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu" style="display: none;">
+                                        <a href="#" class="dropdown-item">View Details</a>
+                                        <a href="#" class="dropdown-item">Edit Order</a>
+                                        <a href="#" class="dropdown-item">Print Invoice</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#WH-2025-002</td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar">A</div>
+                                <div>Alice Johnson</div>
+                            </div>
+                        </td>
+                        <td>5 items</td>
+                        <td>May 9, 2025</td>
+                        <td>
+                            <span class="status-badge status-accepted">
+                                <i class="fas fa-check"></i> Accepted
+                            </span>
+                        </td>
+                        <td class="action-cell">
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary">
+                                    <i class="fas fa-truck"></i> Ship
+                                </button>
+                                <div class="dropdown" style="position: relative; display: inline-block;">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" onclick="toggleDropdown(this)">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu" style="display: none;">
+                                        <a href="#" class="dropdown-item">View Details</a>
+                                        <a href="#" class="dropdown-item">Edit Order</a>
+                                        <a href="#" class="dropdown-item">Print Invoice</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#WH-2025-003</td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar">R</div>
+                                <div>Robert Davis</div>
+                            </div>
+                        </td>
+                        <td>2 items</td>
+                        <td>May 8, 2025</td>
+                        <td>
+                            <span class="status-badge status-shipped">
+                                <i class="fas fa-truck"></i> Shipped
+                            </span>
+                        </td>
+                        <td class="action-cell">
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-light">
+                                    <i class="fas fa-check-circle"></i> Mark Delivered
+                                </button>
+                                <div class="dropdown" style="position: relative; display: inline-block;">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" onclick="toggleDropdown(this)">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu" style="display: none;">
+                                        <a href="#" class="dropdown-item">View Details</a>
+                                        <a href="#" class="dropdown-item">Edit Order</a>
+                                        <a href="#" class="dropdown-item">Print Invoice</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#WH-2025-004</td>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="customer-avatar">E</div>
+                                <div>Emily Wilson</div>
+                            </div>
+                        </td>
+                        <td>7 items</td>
+                        <td>May 7, 2025</td>
+                        <td>
+                            <span class="status-badge status-delivered">
+                                <i class="fas fa-box-check"></i> Delivered
+                            </span>
+                        </td>
+                        <td class="action-cell">
+                            <div class="action-buttons">
+                                <a href="#" class="btn btn-sm btn-light">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <div class="dropdown" style="position: relative; display: inline-block;">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" onclick="toggleDropdown(this)">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu" style="display: none;">
+                                        <a href="#" class="dropdown-item">View Details</a>
+                                        <a href="#" class="dropdown-item">Edit Order</a>
+                                        <a href="#" class="dropdown-item">Print Invoice</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            
+            <div class="card-footer">
+                <div class="pagination">
+                    <a href="#" class="page-item"><i class="fas fa-chevron-left"></i></a>
+                    <a href="#" class="page-item active">1</a>
+                    <a href="#" class="page-item">2</a>
+                    <a href="#" class="page-item">3</a>
+                    <a href="#" class="page-item">...</a>
+                    <a href="#" class="page-item">8</a>
+                    <a href="#" class="page-item"><i class="fas fa-chevron-right"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Dashboard Content -->
+        <div style="margin-top: 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+            <!-- Recent Activity Section -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Activity</h3>
+                    <div class="card-options">
+                        <button class="btn btn-sm btn-light">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="padding: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(67, 97, 238, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 0.25rem 0; font-size: 1rem;">New product added</h4>
+                                <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">Premium Headphones - SKU: AUDIO-5521</p>
+                                <span style="font-size: 0.85rem; color: var(--gray-500);">10 minutes ago</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(46, 196, 182, 0.15); color: var(--success); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 0.25rem 0; font-size: 1rem;">Order #WH-2025-015 approved</h4>
+                                <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">Customer: Michael Brown</p>
+                                <span style="font-size: 0.85rem; color: var(--gray-500);">45 minutes ago</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 159, 28, 0.15); color: var(--warning); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 0.25rem 0; font-size: 1rem;">Low stock alert</h4>
+                                <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">Wireless Mouse - SKU: COMP-3302 (5 remaining)</p>
+                                <span style="font-size: 0.85rem; color: var(--gray-500);">2 hours ago</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(67, 97, 238, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 0.25rem 0; font-size: 1rem;">Shipment sent</h4>
+                                <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">Order #WH-2025-012 shipped via Express</p>
+                                <span style="font-size: 0.85rem; color: var(--gray-500);">3 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; text-align: center;">
+                        <a href="#" style="color: var(--primary); text-decoration: none; font-size: 0.95rem; font-weight: 500;">
+                            View All Activity <i class="fas fa-arrow-right" style="margin-left: 0.25rem;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions Section -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3 class="card-title">Quick Actions</h3>
+                </div>
+                
+                <div style="padding: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <a href="{{ url_for('scan') }}" style="text-decoration: none; color: inherit;">
+                            <div style="background: var(--gray-100); border-radius: 10px; padding: 1.5rem; text-align: center; transition: all 0.2s; border: 1px solid var(--gray-200);">
+                                <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin: 0 auto 1rem auto;">
+                                    <i class="fas fa-barcode"></i>
+                                </div>
+                                <h4 style="margin: 0; font-size: 0.95rem;">Scan Product</h4>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('add_product') }}" style="text-decoration: none; color: inherit;">
+                            <div style="background: var(--gray-100); border-radius: 10px; padding: 1.5rem; text-align: center; transition: all 0.2s; border: 1px solid var(--gray-200);">
+                                <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--success); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin: 0 auto 1rem auto;">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <h4 style="margin: 0; font-size: 0.95rem;">Add Product</h4>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('report') }}" style="text-decoration: none; color: inherit;">
+                            <div style="background: var(--gray-100); border-radius: 10px; padding: 1.5rem; text-align: center; transition: all 0.2s; border: 1px solid var(--gray-200);">
+                                <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--primary-light); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin: 0 auto 1rem auto;">
+                                    <i class="fas fa-chart-pie"></i>
+                                </div>
+                                <h4 style="margin: 0; font-size: 0.95rem;">View Reports</h4>
+                            </div>
+                        </a>
+                        
+                        <a href="#" style="text-decoration: none; color: inherit;">
+                            <div style="background: var(--gray-100); border-radius: 10px; padding: 1.5rem; text-align: center; transition: all 0.2s; border: 1px solid var(--gray-200);">
+                                <div style="width: 50px; height: 50px; border-radius: 12px; background: var(--warning); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin: 0 auto 1rem auto;">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <h4 style="margin: 0; font-size: 0.95rem;">Print Labels</h4>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem;">
+                        <div style="background: rgba(67, 97, 238, 0.08); border-radius: 10px; padding: 1.25rem; border-left: 4px solid var(--primary);">
+                            <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-info-circle" style="color: var(--primary);"></i>
+                                Inventory Check Reminder
+                            </h4>
+                            <p style="margin: 0; font-size: 0.9rem; color: var(--gray-700);">
+                                Monthly inventory check scheduled for May 15, 2025. 
+                                <a href="#" style="color: var(--primary); font-weight: 500;">View details</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for interactive elements -->
+<script>
+    // Auto-dismiss flash messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const flashMessages = document.getElementById('flash-messages');
+        if (flashMessages) {
+            setTimeout(() => {
+                flashMessages.style.transition = 'opacity 0.5s ease';
+                flashMessages.style.opacity = '0';
+                setTimeout(() => {
+                    flashMessages.remove();
+                }, 500);
+            }, 5000);
+        }
+        
+        // Add responsive behavior for sidebar
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        // Function to check if we're on mobile
+        const isMobile = () => window.innerWidth < 992;
+        
+        // Toggle sidebar function
+        function toggleSidebar() {
+            if (isMobile()) {
+                sidebar.classList.toggle('expanded');
+                if (sidebar.classList.contains('expanded')) {
+                    sidebar.style.width = '250px';
+                    // Show text elements
+                    document.querySelectorAll('.brand h2, .nav-section-title, .sidebar-link span, .user-details').forEach(el => {
+                        el.style.display = 'block';
+                    });
+                    // Adjust links
+                    document.querySelectorAll('.sidebar-link').forEach(el => {
+                        el.style.justifyContent = 'flex-start';
+                        el.style.padding = '0.85rem 1rem';
+                    });
+                } else {
+                    sidebar.style.width = '80px';
+                    // Hide text elements
+                    document.querySelectorAll('.brand h2, .nav-section-title, .sidebar-link span, .user-details').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    // Adjust links
+                    document.querySelectorAll('.sidebar-link').forEach(el => {
+                        el.style.justifyContent = 'center';
+                        el.style.padding = '0.85rem';
+                    });
+                }
+            }
+        }
+        
+        // Add hamburger menu for mobile
+        if (isMobile()) {
+            const hamburger = document.createElement('div');
+            hamburger.className = 'hamburger-menu';
+            hamburger.innerHTML = '<i class="fas fa-bars"></i>';
+            hamburger.style.position = 'fixed';
+            hamburger.style.top = '1rem';
+            hamburger.style.left = '1.5rem';
+            hamburger.style.zIndex = '100';
+            hamburger.style.background = 'var(--primary)';
+            hamburger.style.color = 'white';
+            hamburger.style.width = '40px';
+            hamburger.style.height = '40px';
+            hamburger.style.borderRadius = '8px';
+            hamburger.style.display = 'flex';
+            hamburger.style.alignItems = 'center';
+            hamburger.style.justifyContent = 'center';
+            hamburger.style.cursor = 'pointer';
+            hamburger.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            
+            document.body.appendChild(hamburger);
+            
+            hamburger.addEventListener('click', toggleSidebar);
+        }
+        
+        // Active link functionality
+        const navLinks = document.querySelectorAll('.sidebar-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Handle status button clicks with loading states
+        const statusButtons = document.querySelectorAll('.status-btn');
+        statusButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Add loading state
+                this.classList.add('loading');
+                this.disabled = true;
+                
+                // Get the action type for user feedback
+                const action = this.getAttribute('data-action');
+                const actionText = action.charAt(0).toUpperCase() + action.slice(1);
+                
+                // Form will submit normally, but we show loading state
+                // The server will handle the redirect and show success message
+            });
+        });
+    });
+    
+    // Dropdown toggle functionality
+    function toggleDropdown(button) {
+        const dropdown = button.nextElementSibling;
+        const isVisible = dropdown.style.display === 'block';
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+        
+        // Toggle current dropdown
+        dropdown.style.display = isVisible ? 'none' : 'block';
+        
+        // Close dropdown when clicking outside
+        if (!isVisible) {
+            setTimeout(() => {
+                document.addEventListener('click', function closeDropdown(e) {
+                    if (!button.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                });
+            }, 10);
+        }
+    }
+    
+    // Confirmation dialogs for critical actions
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('[data-action="decline"]')) {
+            if (!confirm('Are you sure you want to decline this order? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        }
+    });
+</script>
+{% endblock %}

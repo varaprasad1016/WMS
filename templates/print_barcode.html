@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+  <title>Print Barcode</title>
+  <style>
+    body { text-align: center; font-family: sans-serif; }
+    img { margin-top: 50px; width: 300px; }
+    @media print {
+      button { display: none; }
+    }
+  </style>
+</head>
+<body onload="window.print()">
+  <h2>Barcode Label</h2>
+  <img src="{{ url_for('static', filename='barcodes/' + barcode + '.png') }}">
+  <br><br>
+  <button onclick="window.print()">Print</button>
+</body>
+</html>

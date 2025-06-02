@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Error {{ error_code }}{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h1 class="display-1 text-danger">{{ error_code }}</h1>
+                    <h2 class="mb-4">{{ message }}</h2>
+                    
+                    <p class="lead">
+                        {% if error_code == 404 %}
+                            The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+                        {% elif error_code == 500 %}
+                            The server encountered an internal error and was unable to complete your request.
+                        {% else %}
+                            Something went wrong on our end.
+                        {% endif %}
+                    </p>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('home') }}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Go to Homepage
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <small class="text-muted">
+                    If this issue persists, please contact the system administrator.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

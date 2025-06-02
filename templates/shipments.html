@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shipments</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .table-container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            padding: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #1e88e5;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f4f4f4;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-pending { background-color: #ffeb3b; color: #333; }
+        .status-order-accepted { background-color: #8bc34a; color: white; }
+        .status-shipped { background-color: #03a9f4; color: white; }
+        .status-delivered { background-color: #4caf50; color: white; }
+    </style>
+</head>
+<body>
+    <div class="table-container">
+        <h2><i class="fas fa-truck"></i> Shipments Overview</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Shipment ID</th>
+                    <th>Customer ID</th>
+                    <th>Products</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>#{{ order['id'] }}</td>
+                    <td>{{ order['customer_id'] }}</td>
+                    <td>
+                        <ul>
+                            {% for product in order['product_names'] %}
+                            <li>{{ product }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ order['status'].lower().replace(' ', '-') }}">
+                            {{ order['status'] }}
+                        </span>
+                    </td>
+                    <td>{{ order['created_at'] }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">No shipments found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
