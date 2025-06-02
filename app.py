@@ -9,6 +9,11 @@ from barcode.writer import ImageWriter
 from flask import make_response
 from functools import wraps
 import json
+import chatbot
+import re
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # change this for security!
@@ -50,29 +55,6 @@ def init_db():
             status TEXT DEFAULT 'Pending',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(customer_id) REFERENCES users(id)
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS vendors (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            phone TEXT,
-            address TEXT
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS purchase_orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            vendor_id INTEGER,
-            sales_order_id INTEGER,
-            product_barcode TEXT NOT NULL,
-            quantity INTEGER NOT NULL,
-            status TEXT DEFAULT 'Pending',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(vendor_id) REFERENCES vendors(id),
-            FOREIGN KEY(sales_order_id) REFERENCES sales_orders(id),
-            FOREIGN KEY(product_barcode) REFERENCES products(barcode)
         )
     ''')
     conn.commit()
@@ -157,6 +139,71 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# First, add this statistics function to your app.py
+def get_dashboard_statistics():
+    """Get statistics for the admin dashboard"""
+    conn = get_db_connection()
+    
+    # Get total products count
+    total_products = conn.execute('SELECT COUNT(*) as count FROM products').fetchone()['count']
+    
+    # Get low stock items (less than 10 in quantity)
+    low_stock_count = conn.execute('SELECT COUNT(*) as count FROM products WHERE quantity < 10').fetchone()['count']
+    
+    # Get pending orders count
+    pending_count = conn.execute("SELECT COUNT(*) as count FROM sales_orders WHERE status = 'Pending'").fetchone()['count']
+    
+    # Get shipped today count
+    shipped_today = conn.execute("""
+        SELECT COUNT(*) as count FROM sales_orders 
+        WHERE status = 'Shipped' 
+        AND date(created_at) = date('now')
+    """).fetchone()['count']
+    
+    # Calculate percentage changes (using placeholder logic)
+    # In a real app, you'd compare with historical data from another table
+    products_growth = 0  # Placeholder
+    pending_growth = 0   # Placeholder
+    low_stock_growth = 0 # Placeholder
+    shipped_growth = 0   # Placeholder
+    
+    # Get recent activity (simplified version)
+    recent_activity = []
+    
+    # Get next inventory check date (placeholder)
+    next_inventory_check = {
+        'date': 'May 15, 2025',
+        'detail_url': '#'
+    }
+    
+    conn.close()
+    
+    return {
+        'total_products': {
+            'value': total_products,
+            'change': products_growth,
+            'trend': 'up' if products_growth > 0 else 'down'
+        },
+        'pending_orders': {
+            'value': pending_count,
+            'change': pending_growth,
+            'trend': 'up' if pending_growth > 0 else 'down'
+        },
+        'low_stock': {
+            'value': low_stock_count,
+            'change': low_stock_growth,
+            'trend': 'up' if low_stock_growth > 0 else 'down'
+        },
+        'shipped_today': {
+            'value': shipped_today,
+            'change': shipped_growth,
+            'trend': 'up' if shipped_growth > 0 else 'down'
+        },
+        'recent_activity': recent_activity,
+        'next_inventory_check': next_inventory_check
+    }
+
+# Then, update your dashboard route
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
@@ -170,10 +217,96 @@ def dashboard():
             LEFT JOIN users ON sales_orders.customer_id = users.id
             ORDER BY sales_orders.created_at DESC
         ''').fetchall()
+        
+        # Process orders to extract products information
+        processed_orders = []
+        for order in orders:
+            order_dict = dict(order)
+            try:
+                # Parse the JSON data to get the product details
+                order_data = json.loads(order['order_data'])
+                
+                # Count unique products in the order
+                product_count = len(order_data)
+                
+                # Format the display string
+                order_dict['products'] = f"{product_count} item" + ("s" if product_count != 1 else "")
+                
+                processed_orders.append(order_dict)
+            except:
+                order_dict['products'] = 'Unknown'
+                processed_orders.append(order_dict)
+        
         conn.close()
-        return render_template('dashboard.html', orders=orders)
+        
+        # Get live statistics for the dashboard
+        stats = get_dashboard_statistics()
+        
+        return render_template('dashboard.html', 
+                            orders=processed_orders, 
+                            stats=stats,
+                            total_products=stats['total_products']['value'],
+                            pending_count=stats['pending_orders']['value'],
+                            low_stock_count=stats['low_stock']['value'],
+                            shipped_today=stats['shipped_today']['value'])
     else:
         return redirect(url_for('customer_dashboard'))
+
+@app.route('/order-detail/<int:order_id>')
+def view_order_detail(order_id):
+    """View detailed sales order in Sage-like format with print option"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    conn = get_db_connection()
+    
+    # Get order details
+    order = conn.execute('''
+        SELECT sales_orders.*, users.username, users.id as customer_id
+        FROM sales_orders
+        LEFT JOIN users ON sales_orders.customer_id = users.id
+        WHERE sales_orders.id = ?
+    ''', (order_id,)).fetchone()
+    
+    if not order:
+        conn.close()
+        flash("Order not found", "error")
+        return redirect(url_for('dashboard'))
+    
+    # Process order items
+    order_items = []
+    order_total = 0
+    
+    try:
+        order_data = json.loads(order['order_data'])
+        
+        for barcode, details in order_data.items():
+            # Get product details
+            product = conn.execute('SELECT * FROM products WHERE barcode = ?', (barcode,)).fetchone()
+            
+            if product:
+                # For simplicity, let's assume a placeholder price of $10 per item
+                price = 10.00
+                item_total = price * details['quantity']
+                order_total += item_total
+                
+                order_items.append({
+                    'product_id': product['id'],
+                    'name': product['name'],
+                    'barcode': barcode,
+                    'quantity': details['quantity'],
+                    'price': price,
+                    'total': item_total
+                })
+    except:
+        pass
+    
+    conn.close()
+    
+    return render_template('order_detail.html', 
+                          order=order, 
+                          items=order_items,
+                          total=order_total)
 
 @app.route('/scan')
 def scan():
@@ -200,6 +333,35 @@ def products():
     for product in products:
         generate_barcode_image(product['barcode'])
     return render_template('products.html', products=products)
+    
+@app.route('/shipments')
+def shipment():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    orders = conn.execute('SELECT * FROM sales_orders').fetchall()
+
+    processed_orders = []
+    for order in orders:
+        order_dict = dict(order)
+        try:
+            order_data = json.loads(order['order_data'])
+            item_list = []
+            for barcode, details in order_data.items():
+                product = conn.execute('SELECT name FROM products WHERE barcode = ?', (barcode,)).fetchone()
+                product_name = product['name'] if product else 'Unknown Product'
+                item_list.append(f"{product_name} x{details['quantity']}")
+            order_dict['product_names'] = item_list
+        except Exception:
+            order_dict['product_names'] = ['[Invalid data]']
+        processed_orders.append(order_dict)
+
+    conn.close()
+    return render_template('shipments.html', orders=processed_orders)
+
+
+
 
 @app.route('/add-product', methods=['GET', 'POST'])
 def add_product():
@@ -222,19 +384,18 @@ def add_product():
         return redirect(url_for('products'))
     return render_template('add_product.html')
 
-@app.route('/sales-orders')
-def view_sales_orders():
-    if 'user_id' not in session or session.get('role') != 'admin':
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    orders = conn.execute('''
-        SELECT sales_orders.*, users.username 
-        FROM sales_orders
-        LEFT JOIN users ON sales_orders.customer_id = users.id
-        ORDER BY sales_orders.created_at DESC
-    ''').fetchall()
-    conn.close()
+# @app.route('/sales-orders')
+# def view_sales_orders():
+    # if 'user_id' not in session or session.get('role') != 'admin':
+        # return redirect(url_for('login'))
+    # conn = get_db_connection()
+    # orders = conn.execute('''
+        # SELECT sales_orders.*, users.username 
+        # FROM sales_orders
+        # LEFT JOIN users ON sales_orders.customer_id = users.id
+        # ORDER BY sales_orders.created_at DESC
+    # ''').fetchall()
+    # conn.close()
 
     # Process orders to extract items from JSON data for easier display
     processed_orders = []
@@ -262,99 +423,25 @@ def view_sales_orders():
 def update_order_status(order_id):
     if 'user_id' not in session or session['role'] != 'admin':
         return redirect(url_for('login'))
-    
     new_status = request.form['status']
     conn = get_db_connection()
-    
-    # First, check if the status is being changed to an approval status
-    # We'll consider both "Order Accepted" and "Approved" as approval statuses
-    approval_statuses = ['Order Accepted', 'Approved']
-    
-    # Get the current status before updating
-    current_status = conn.execute('SELECT status FROM sales_orders WHERE id = ?', (order_id,)).fetchone()
-    
-    # Store items with insufficient stock for potential vendor notification
-    insufficient_stock_items = []
-    
-    # Only update product quantities if:
-    # 1. The new status is in our approval list
-    # 2. The current status was not already an approved status (to prevent double deduction)
-    if new_status in approval_statuses and (not current_status or current_status['status'] not in approval_statuses):
-        try:
-            # Get the order data
-            order = conn.execute('SELECT * FROM sales_orders WHERE id = ?', (order_id,)).fetchone()
-            
-            if order:
-                # Parse the order data JSON
+    conn.execute('UPDATE sales_orders SET status = ? WHERE id = ?', (new_status, order_id))
+    if new_status == 'Order Accepted':
+        order = conn.execute('SELECT * FROM sales_orders WHERE id = ?', (order_id,)).fetchone()
+        if order:
+            try:
                 order_data = json.loads(order['order_data'])
-                
-                # Check stock for each item in the order first
-                has_insufficient_stock = False
-                
+                # Process items based on the structure from the checkout function
                 for barcode, details in order_data.items():
                     qty = details['quantity']
-                    
-                    # Check if there's enough stock
-                    current_stock = conn.execute('SELECT * FROM products WHERE barcode = ?', 
-                                              (barcode,)).fetchone()
-                    
-                    if not current_stock or current_stock['quantity'] < qty:
-                        has_insufficient_stock = True
-                        # Calculate how many more units we need
-                        shortage = qty - (current_stock['quantity'] if current_stock else 0)
-                        
-                        # Add to our list of items with insufficient stock
-                        insufficient_stock_items.append({
-                            'barcode': barcode,
-                            'name': current_stock['name'] if current_stock else "Unknown Product",
-                            'requested': qty,
-                            'available': current_stock['quantity'] if current_stock else 0,
-                            'shortage': shortage
-                        })
-                
-                # If there are items with insufficient stock, let the admin handle it via vendors
-                if has_insufficient_stock:
-                    session['insufficient_stock'] = {
-                        'order_id': order_id,
-                        'new_status': new_status,
-                        'items': insufficient_stock_items
-                    }
-                    session.modified = True
-                    
-                    flash("Order has items with insufficient stock. Please review and notify vendors if needed.", "warning")
-                    conn.close()
-                    return redirect(url_for('insufficient_stock_dialog', order_id=order_id))
-                
-                # If we have enough stock for everything, proceed with the update
-                else:
-                    # Update the order status
-                    conn.execute('UPDATE sales_orders SET status = ? WHERE id = ?', (new_status, order_id))
-                    
-                    # Update stock for each item
-                    for barcode, details in order_data.items():
-                        qty = details['quantity']
-                        
-                        # Update product quantities
-                        conn.execute('UPDATE products SET quantity = quantity - ? WHERE barcode = ?', 
-                                   (qty, barcode))
-                        
-                        # Record this stock movement in the stock table
-                        conn.execute('INSERT INTO stock (barcode, quantity) VALUES (?, ?)', 
-                                   (barcode, -qty))  # Negative quantity indicates stock reduction
-                    
-                    flash("Order has been successfully approved and stock updated!", "success")
-        
-        except Exception as e:
-            print(f"Error processing order data: {e}")
-            flash(f"Error updating stock: {str(e)}", "error")
-    else:
-        # Just update the status if it's not an approval status
-        conn.execute('UPDATE sales_orders SET status = ? WHERE id = ?', (new_status, order_id))
-    
+                    # Update product quantities
+                    conn.execute('UPDATE products SET quantity = quantity - ? WHERE barcode = ?', (qty, barcode))
+            except Exception as e:
+                print("Error processing order data:", e)
     conn.commit()
     conn.close()
-    return redirect(url_for('view_sales_orders'))
-    
+    return redirect(url_for('dashboard'))
+
 @app.route('/customer-dashboard')
 def customer_dashboard():
     if 'user_id' not in session or session.get('role') != 'customer':
@@ -369,7 +456,7 @@ def customer_dashboard():
         # If there's a search query, filter products
         products = conn.execute('''
             SELECT * FROM products 
-            WHERE name LIKE ? OR barcode LIKE ?
+            WHERE quantity > 0 AND (name LIKE ? OR barcode LIKE ?)
             ORDER BY name
         ''', (f'%{search_query}%', f'%{search_query}%')).fetchall()
     else:
@@ -420,6 +507,140 @@ def customer_dashboard():
                           orders=processed_orders, 
                           cart_count=cart_count,
                           search_query=search_query)
+@app.route('/add-stock', methods=['GET', 'POST'])
+def add_stock():
+    """Route to add stock quantity to existing products"""
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    message = None
+    message_type = None
+    
+    # Get all products for the dropdown
+    conn = get_db_connection()
+    products = conn.execute('SELECT id, name, barcode, quantity FROM products ORDER BY name').fetchall()
+    
+    if request.method == 'POST':
+        product_id = request.form.get('product_id')
+        quantity = request.form.get('quantity')
+        
+        # Validate inputs
+        if not product_id or not quantity:
+            message = "Both product and quantity are required"
+            message_type = "error"
+        else:
+            try:
+                quantity = int(quantity)
+                if quantity <= 0:
+                    message = "Quantity must be greater than zero"
+                    message_type = "error"
+                else:
+                    # Get current product details
+                    product = conn.execute('SELECT name, quantity FROM products WHERE id = ?', 
+                                          (product_id,)).fetchone()
+                    
+                    if product:
+                        # Update product quantity
+                        conn.execute('UPDATE products SET quantity = quantity + ? WHERE id = ?', 
+                                    (quantity, product_id))
+                        
+                        # Also log this in the stock table for tracking
+                        conn.execute('INSERT INTO stock (barcode, quantity) SELECT barcode, ? FROM products WHERE id = ?',
+                                    (quantity, product_id))
+                        
+                        # Log activity to activity_log table
+                        product_name = product['name']
+                        new_quantity = product['quantity'] + quantity
+                        conn.execute('''
+                            INSERT INTO activity_log (activity_type, description, related_id) 
+                            VALUES (?, ?, ?)
+                        ''', ('stock_added', f"Added {quantity} units to {product_name}. New total: {new_quantity}", product_id))
+                        
+                        conn.commit()
+                        message = f"Successfully added {quantity} units to {product_name}"
+                        message_type = "success"
+                        
+                        # Refresh products list after update
+                        products = conn.execute('SELECT id, name, barcode, quantity FROM products ORDER BY name').fetchall()
+                    else:
+                        message = "Product not found"
+                        message_type = "error"
+            except ValueError:
+                message = "Quantity must be a number"
+                message_type = "error"
+    
+    conn.close()
+    return render_template('add_stock.html', products=products, message=message, message_type=message_type)
+
+@app.route('/add-stock-to-product', methods=['POST'])
+def add_stock_to_product():
+    """Handle adding stock to a product from the report page"""
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    message = None
+    message_type = None
+    
+    product_id = request.form.get('product_id')
+    quantity = request.form.get('quantity')
+    
+    # Validate inputs
+    if not product_id or not quantity:
+        message = "Both product and quantity are required"
+        message_type = "error"
+    else:
+        try:
+            quantity = int(quantity)
+            if quantity <= 0:
+                message = "Quantity must be greater than zero"
+                message_type = "error"
+            else:
+                conn = get_db_connection()
+                
+                # Get current product details
+                product = conn.execute('SELECT name, barcode, quantity FROM products WHERE id = ?', 
+                                      (product_id,)).fetchone()
+                
+                if product:
+                    # Update product quantity
+                    conn.execute('UPDATE products SET quantity = quantity + ? WHERE id = ?', 
+                                (quantity, product_id))
+                    
+                    # Also log this in the stock table for tracking
+                    conn.execute('INSERT INTO stock (barcode, quantity) VALUES (?, ?)',
+                                (product['barcode'], quantity))
+                    
+                    # Log activity to activity_log table if it exists
+                    product_name = product['name']
+                    new_quantity = product['quantity'] + quantity
+                    
+                    try:
+                        conn.execute('''
+                            INSERT INTO activity_log (activity_type, description, related_id) 
+                            VALUES (?, ?, ?)
+                        ''', ('stock_added', f"Added {quantity} units to {product_name}. New total: {new_quantity}", product_id))
+                    except:
+                        # Skip if activity_log table doesn't exist
+                        pass
+                    
+                    conn.commit()
+                    message = f"Successfully added {quantity} units to {product_name}"
+                    message_type = "success"
+                else:
+                    message = "Product not found"
+                    message_type = "error"
+                
+                conn.close()
+        except ValueError:
+            message = "Quantity must be a number"
+            message_type = "error"
+    
+    # Get all products again to refresh the list
+    conn = get_db_connection()
+    products = conn.execute('SELECT * FROM products').fetchall()
+    conn.close()
+    
+    return render_template('report.html', products=products, message=message, message_type=message_type)
 
 @app.route('/add-to-cart', methods=['POST'])
 def add_to_cart():
@@ -452,7 +673,7 @@ def view_cart():
                 'name': product['name'],
                 'barcode': barcode,
                 'quantity': item['quantity'],
-                'available': product['quantity']  # Keep this for information purposes
+                'available': product['quantity']  # Add available quantity for validation
             })
     conn.close()
     cart_count = sum(item['quantity'] for item in cart.values())
@@ -464,32 +685,62 @@ def checkout():
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'message': 'Please log in'}), 401
         return redirect(url_for('login'))
-
+    
     cart = session.get('cart', {})
     if not cart:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'message': 'Your cart is empty'}), 400
         return redirect(url_for('customer_dashboard'))
-
-    # REMOVED: We no longer check if stock is sufficient here
-    # Instead, we just process the order regardless of stock availability
-
+    
+    conn = get_db_connection()
+    
+    # Check stock and prepare order status info
+    stock_issues = []
+    for barcode, item in cart.items():
+        product = conn.execute('SELECT quantity FROM products WHERE barcode = ?', (barcode,)).fetchone()
+        if not product:
+            stock_issues.append(f"{item.get('name', 'Unknown product')} - Product not found")
+        elif product['quantity'] < item['quantity']:
+            available = product['quantity']
+            requested = item['quantity']
+            stock_issues.append(f"{item.get('name', 'Product')} - Only {available} available (requested {requested})")
+    
+    # Place order regardless of stock issues
     order_data = json.dumps(cart)
     customer_id = session['user_id']
-
-    conn = get_db_connection()
+    
+    # Add stock status to order for tracking
+    order_status = 'Confirmed' if not stock_issues else 'Partial Stock'
+    
     conn.execute('INSERT INTO sales_orders (customer_id, order_data, status) VALUES (?, ?, ?)',
-                 (customer_id, order_data, 'Pending'))
+                 (customer_id, order_data, order_status))
+    
+    # Optionally: Deduct available stock (don't go below 0)
+    for barcode, item in cart.items():
+        product = conn.execute('SELECT quantity FROM products WHERE barcode = ?', (barcode,)).fetchone()
+        if product:
+            stock_to_deduct = min(item['quantity'], product['quantity'])
+            if stock_to_deduct > 0:
+                conn.execute('UPDATE products SET quantity = quantity - ? WHERE barcode = ?',
+                           (stock_to_deduct, barcode))
+    
     conn.commit()
     conn.close()
     
+    # Clear cart
     session['cart'] = {}
-
+    
+    # Prepare success message
+    if stock_issues:
+        message = f'Order placed successfully! Note: Some items have limited stock and will be fulfilled when available.'
+    else:
+        message = 'Order placed successfully!'
+    
     # If AJAX request, return JSON instead of redirect
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({'success': True, 'message': 'Order placed successfully!'})
-
-    flash('Order has been successfully placed!', 'success')
+        return jsonify({'success': True, 'message': message})
+    
+    flash(message, 'success')
     return redirect(url_for('customer_dashboard'))
 
 @app.route('/report')
@@ -565,203 +816,151 @@ def your_orders():
     
     return render_template('your_orders.html', orders=processed_orders, cart_count=cart_count)
 
+def fetch_order_status(order_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT status FROM sales_orders WHERE id = ?', (order_id,))
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        return f"The status of your order {order_id} is: {result[0]}"
+    else:
+        return f"Order ID {order_id} not found in our system."
+
+# --- CHATBOT FUNCTION ---
+
+def generate_response(message):
+    message = message.lower()
+    words = set(re.findall(r'\w+', message))
+
+    # Extract numeric order ID if mentioned
+    number_match = re.search(r"\b\d{1,10}\b", message)  # match order numbers like 4, 123, 999999
+    contains_status_keywords = words & {"status", "track", "where", "check"}
+
+    if contains_status_keywords and number_match:
+        return fetch_order_status(number_match.group())
+
+    # Basic numeric ID detection fallback
+    if number_match and "order" in words:
+        return fetch_order_status(number_match.group())
+
+    # Greeting
+    if words & {"hi", "hello", "hey"}:
+        return "Hello! 👋 How can I assist you with your order today?"
+
+    # Asking how to order
+    if words & {"order", "buy", "purchase"} and words & {"how", "want", "place"}:
+        return "To place an order, browse products, add items to your cart, and click 'Checkout'."
+
+    # Delivery time
+    if words & {"delivery", "arrive", "receive", "ship", "reach"}:
+        return "Delivery usually takes 3 to 5 business days depending on your location."
+
+    # Cancel order
+    if "cancel" in words:
+        return "To cancel your order, please provide your order ID (e.g., 12345)."
+
+    # Check status (without number yet)
+    if contains_status_keywords:
+        return "Sure! Just provide your numeric order ID (e.g., 12345) so I can check the status for you."
+
+    # Help
+    if words & {"help", "can", "do"}:
+        return "I can help you place orders, check order status, cancel orders, and answer delivery-related questions."
+
+    # Default fallback
+    return (
+        "I'm not quite sure I got that 🤔 Try asking things like:\n"
+        "- How do I place an order?\n"
+        "- What's the status of my order 12345?\n"
+        "- Cancel my order\n"
+        "- When will my order arrive?\n"
+        "- How do I get a refund?"
+    )
+
+@app.route("/index", methods=["GET", "POST"])
+def index():
+    if request.method == "GET":
+        # Serve the HTML page
+        return render_template("index.html")
+    elif request.method == "POST":
+        # Handle chat messages
+        user_input = request.json.get("message", "")
+        response = generate_response(user_input)
+        return jsonify({"response": response})
+        
 @app.route('/print-barcode/<barcode>')
 @no_cache
 def print_barcode(barcode):
     image_path = generate_barcode_image(barcode)
     return render_template('print_barcode.html', barcode=barcode)
 
-@app.route('/insufficient-stock/<int:order_id>')
-def insufficient_stock_dialog(order_id):
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))
-    
-    # Get the insufficient stock info from the session
-    insufficient_stock = session.get('insufficient_stock', {})
-    
-    # Make sure it's for the right order
-    if not insufficient_stock or insufficient_stock.get('order_id') != order_id:
-        flash("Invalid request or session expired", "error")
-        return redirect(url_for('view_sales_orders'))
-    
-    # Get vendors for the dropdown
+@app.route('/forecast')
+def sales_forecast():
     conn = get_db_connection()
-    vendors = conn.execute('SELECT * FROM vendors').fetchall()
+    df = pd.read_sql_query("SELECT created_at, order_data FROM sales_orders", conn)
+    products_df = pd.read_sql_query("SELECT id, name FROM products", conn)
     conn.close()
-    
-    # If no vendors yet, suggest adding one
-    if not vendors:
-        flash("You need to add vendors first before you can create purchase orders", "warning")
-    
-    return render_template('insufficient_stock_dialog.html', 
-                          order_id=order_id,
-                          items=insufficient_stock.get('items', []),
-                          vendors=vendors)
 
-@app.route('/process-insufficient-stock/<int:order_id>', methods=['POST'])
-def process_insufficient_stock(order_id):
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))
-    
-    # Get the insufficient stock info from the session
-    insufficient_stock = session.get('insufficient_stock', {})
-    
-    # Make sure it's for the right order
-    if not insufficient_stock or insufficient_stock.get('order_id') != order_id:
-        flash("Invalid request or session expired", "error")
-        return redirect(url_for('view_sales_orders'))
-    
-    # Get the form data
-    action = request.form.get('action')
-    
-    conn = get_db_connection()
-    
-    if action == 'notify_vendor':
-        # Create purchase orders for the items with insufficient stock
-        vendor_id = request.form.get('vendor_id')
-        
-        if not vendor_id:
-            flash("Please select a vendor", "error")
-            conn.close()
-            return redirect(url_for('insufficient_stock_dialog', order_id=order_id))
-        
-        # Create a purchase order for each item
-        for item in insufficient_stock.get('items', []):
-            conn.execute('''
-                INSERT INTO purchase_orders 
-                (vendor_id, sales_order_id, product_barcode, quantity, status) 
-                VALUES (?, ?, ?, ?, ?)
-            ''', (vendor_id, order_id, item['barcode'], item['shortage'], 'Pending'))
-        
-        # Update the order status - we're approving it even with insufficient stock because we've notified vendors
-        conn.execute('UPDATE sales_orders SET status = ? WHERE id = ?', 
-                   (insufficient_stock.get('new_status'), order_id))
-        
-        # Update stock for the available quantities
-        order = conn.execute('SELECT * FROM sales_orders WHERE id = ?', (order_id,)).fetchone()
-        if order:
-            order_data = json.loads(order['order_data'])
-            
-            for barcode, details in order_data.items():
-                qty_requested = details['quantity']
-                
-                # Get current stock
-                product = conn.execute('SELECT * FROM products WHERE barcode = ?', (barcode,)).fetchone()
-                if product:
-                    # Use what we have
-                    qty_to_deduct = min(qty_requested, product['quantity'])
-                    if qty_to_deduct > 0:
-                        conn.execute('UPDATE products SET quantity = quantity - ? WHERE barcode = ?', 
-                                   (qty_to_deduct, barcode))
-                        conn.execute('INSERT INTO stock (barcode, quantity) VALUES (?, ?)', 
-                                   (barcode, -qty_to_deduct))
-        
-        flash("Purchase orders have been created and vendors will be notified. Order has been approved with partial fulfillment.", "success")
-    
-    elif action == 'fulfill_later':
-        # Just update the status but don't deduct stock
-        conn.execute('UPDATE sales_orders SET status = ? WHERE id = ?', 
-                   (insufficient_stock.get('new_status'), order_id))
-        flash("Order has been approved but will be fulfilled later when stock is available.", "info")
-    
-    elif action == 'cancel':
-        # Don't update the status, just go back
-        flash("Order status update cancelled.", "info")
-    
-    # Clear the session data
-    if 'insufficient_stock' in session:
-        del session['insufficient_stock']
-        session.modified = True
-    
-    conn.commit()
-    conn.close()
-    return redirect(url_for('view_sales_orders'))
-
-@app.route('/vendors')
-def vendors():
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))
-    
-    conn = get_db_connection()
-    vendors_list = conn.execute('SELECT * FROM vendors').fetchall()
-    conn.close()
-    
-    return render_template('vendors.html', vendors=vendors_list)
-
-@app.route('/add-vendor', methods=['GET', 'POST'])
-def add_vendor():
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))
-    
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        phone = request.form['phone']
-        address = request.form['address']
-        
-        conn = get_db_connection()
+    # Parse order_data
+    records = []
+    for i, row in df.iterrows():
         try:
-            conn.execute('''
-                INSERT INTO vendors (name, email, phone, address) 
-                VALUES (?, ?, ?, ?)
-            ''', (name, email, phone, address))
-            conn.commit()
-            flash("Vendor added successfully!", "success")
-        except sqlite3.IntegrityError:
-            flash("Email already exists for another vendor!", "error")
-        finally:
-            conn.close()
-        
-        return redirect(url_for('vendors'))
-    
-    return render_template('add_vendor.html')
+            created_at = pd.to_datetime(row['created_at'])
+            order_data = json.loads(row['order_data'])
+            for barcode, details in order_data.items():
+                records.append({
+                    'created_at': created_at,
+                    'barcode': barcode,
+                    'quantity': details['quantity']
+                })
+        except Exception:
+            continue
 
-@app.route('/purchase-orders')
-def purchase_orders():
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))
-    
-    conn = get_db_connection()
-    orders = conn.execute('''
-        SELECT po.*, v.name as vendor_name, p.name as product_name 
-        FROM purchase_orders po
-        JOIN vendors v ON po.vendor_id = v.id
-        JOIN products p ON po.product_barcode = p.barcode
-        ORDER BY po.created_at DESC
-    ''').fetchall()
-    conn.close()
-    
-    return render_template('purchase_orders.html', orders=orders)
+    sales_df = pd.DataFrame(records)
+    if sales_df.empty:
+        flash("No sales data available for forecasting.", "error")
+        return redirect(url_for('dashboard'))
 
-@app.route('/update-purchase-order/<int:po_id>', methods=['POST'])
-def update_purchase_order(po_id):
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))
-    
-    new_status = request.form['status']
     conn = get_db_connection()
-    
-    # Update the PO status
-    conn.execute('UPDATE purchase_orders SET status = ? WHERE id = ?', (new_status, po_id))
-    
-    # If the status is "Received", update inventory
-    if new_status == 'Received':
-        po = conn.execute('SELECT * FROM purchase_orders WHERE id = ?', (po_id,)).fetchone()
-        if po:
-            # Update product quantities
-            conn.execute('UPDATE products SET quantity = quantity + ? WHERE barcode = ?', 
-                      (po['quantity'], po['product_barcode']))
-            
-            # Record this stock movement
-            conn.execute('INSERT INTO stock (barcode, quantity) VALUES (?, ?)', 
-                      (po['product_barcode'], po['quantity']))
-            
-            flash("Purchase order marked as received. Stock has been updated.", "success")
-    
-    conn.commit()
+    barcode_name_map = {row['barcode']: row['name'] for row in conn.execute('SELECT barcode, name FROM products')}
     conn.close()
-    
-    return redirect(url_for('purchase_orders'))
+
+    sales_df['product_name'] = sales_df['barcode'].map(barcode_name_map)
+    sales_df['created_at'] = pd.to_datetime(sales_df['created_at'])
+    sales_df.set_index('created_at', inplace=True)
+
+    summaries = {}
+    for period, label in zip(['W', 'M', 'Q'], ['weekly', 'monthly', 'quarterly']):
+        period_group = sales_df.groupby([pd.Grouper(freq=period), 'product_name'])['quantity'].sum().reset_index()
+        top = (
+            period_group.sort_values(['created_at', 'quantity'], ascending=[True, False])
+            .drop_duplicates(subset=['created_at'])
+            .sort_values('created_at', ascending=False)
+        )
+        summaries[label] = top.head(1).to_dict(orient='records')
+
+        # Plot total quantity per period
+        trend = sales_df.resample(period)['quantity'].sum()
+        plt.figure(figsize=(10, 4))
+        sns.lineplot(x=trend.index, y=trend.values)
+        plt.title(f"{label.capitalize()} Sales Trend")
+        plt.ylabel('Quantity Sold')
+        plt.xlabel('Date')
+        plt.tight_layout()
+        path = f'static/{label}_trend.png'
+        plt.savefig(path)
+        plt.close()
+
+    return render_template("forecast.html",
+                           weekly_top=summaries['weekly'],
+                           monthly_top=summaries['monthly'],
+                           quarterly_top=summaries['quarterly'],
+                           weekly_img='static/weekly_trend.png',
+                           monthly_img='static/monthly_trend.png',
+                           quarterly_img='static/quarterly_trend.png')
+
 
 if __name__ == '__main__':
     init_db()
